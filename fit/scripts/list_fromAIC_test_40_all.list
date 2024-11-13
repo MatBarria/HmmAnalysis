@@ -1,0 +1,17 @@
+highres 600 10000 0.000 10.000 singleExp   0.376   singlePow   0.355   modExp   0.133   poly2   0.041   doubleExp   0.039    
+highres 150 600 0.130 10.000 poly2   0.289   singleExp   0.236   singlePow   0.233   modExp   0.137   poly3   0.062    
+highres 450 600 0.000 0.005 singleExp   0.350   singlePow   0.347   modExp   0.181   poly2   0.052    
+highres 450 600 0.005 0.130 singlePow   0.366   singleExp   0.361   modExp   0.112   doubleExp   0.093    
+highres 150 350 0.000 0.130 singlePow   0.356   singleExp   0.300   modExp   0.130   doubleExp   0.064   doublePow   0.055   poly3   0.045    
+highres 350 450 0.000 0.015 singleExp   0.372   singlePow   0.341   modExp   0.139   poly2   0.044   doubleExp   0.042   doublePow   0.038    
+highres 350 450 0.015 0.130 singlePow   0.361   singleExp   0.352   modExp   0.119   doubleExp   0.049   doublePow   0.049   poly2   0.048    
+highpt 600 10000 0.000 0.010 singleExp   0.380   singlePow   0.379   modExp   0.121    
+highpt 600 10000 0.010 10.000 singlePow   0.369   singleExp   0.367   modExp   0.117   poly2   0.058    
+highpt 150 600 0.085 10.000 doubleExp   0.952    
+highpt 150 450 0.000 0.085 singleExp   0.334   singlePow   0.326   modExp   0.158   poly2   0.064   doubleExp   0.043   doublePow   0.042    
+highpt 450 600 0.000 0.020 singleExp   0.314   singlePow   0.296   modExp   0.193   poly2   0.071   doubleExp   0.070    
+highpt 450 600 0.020 0.085 singlePow   0.361   singleExp   0.340   modExp   0.107   poly2   0.076   doubleExp   0.054   doublePow   0.037    
+lowres 500 10000 0.000 10.000 singlePow   0.334   singleExp   0.330   modExp   0.113   poly2   0.063   poly3   0.052   doubleExp   0.038   doublePow   0.036   poly4   0.033    
+lowres 150 500 0.110 10.000 singlePow   0.349   singleExp   0.344   modExp   0.112   poly2   0.059    
+lowres 150 400 0.000 0.110 modExp   0.368   singleExp   0.287   poly2   0.110   singlePow   0.090   poly3   0.059   doubleExp   0.038    
+lowres 400 500 0.000 0.110 singleExp   0.368   singlePow   0.354   modExp   0.133   poly2   0.045   doubleExp   0.041   doublePow   0.039    

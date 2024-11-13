@@ -1,0 +1,20 @@
+# Datacard example for combine tutorial 2023 (part 1)
+---------------------------------------------
+imax 1
+jmax 1
+kmax *
+---------------------------------------------
+
+shapes      signal       Cat1      test_out1.root      w3:SigDCB_pdf
+shapes      bkg		 Cat1      test_out1.root      w1:my_bkg_sExp
+shapes      data_obs     Cat1      test_out1.root      w1:data
+
+---------------------------------------------
+bin             Cat1
+observation     -1
+---------------------------------------------
+bin             Cat1         Cat1
+process         signal       bkg
+process         0            1
+rate            0.275        1.0
+---------------------------------------------

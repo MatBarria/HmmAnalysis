@@ -1,0 +1,17 @@
+highres      600          10000        0.000        10.000       singleExp    
+highres      150          600          0.130        10.000       poly2       
+highres      450          600          0.000        0.005        modExp       
+highres      450          600          0.005        0.130        singlePow    
+highres      150          350          0.000        0.130        singlePow    
+highres      350          450          0.000        0.015        modExp       
+highres      350          450          0.015        0.130        singlePow    
+highpt       600          10000        0.000        0.010        singleExp    
+highpt       600          10000        0.010        10.000       singlePow    
+highpt       150          600          0.085        10.000       doubleExp    
+highpt       150          450          0.000        0.085        singleExp    
+highpt       450          600          0.000        0.020        poly2        
+highpt       450          600          0.020        0.085        singlePow    
+lowres       500          10000        0.000        10.000       singlePow    
+lowres       150          500          0.110        10.000       singlePow    
+lowres       150          400          0.000        0.110        poly2        
+lowres       400          500          0.000        0.110        poly2        

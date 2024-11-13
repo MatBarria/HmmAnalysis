@@ -1,0 +1,4 @@
+CascadeMinimizer.cc[188] : (in function: improveOnce) - Minimization configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+CascadeMinimizer.cc[212] : (in function: improveOnce) - [WARNING] Minimization finished with status 1 (covariance matrix forced positive definite), this could indicate a problem with the minimum.
+CascadeMinimizer.cc[215] : (in function: improveOnce) - Minimization finished with status=1
+CascadeMinimizer.cc[219] : (in function: improveOnce) - Minimization success! status=0
