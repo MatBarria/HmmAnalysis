@@ -21,41 +21,6 @@ from .helper import (
 
 signal_colors = {"ggH": "red", "VBF": "blue", "ttH": "lime"}
 
-y_axis_max_range = {
-    "mu1_pt_mass_ratio": 10e6,
-    "mu2_pt_mass_ratio": 10e6,
-    "mu1_eta": 10e6,
-    "mu2_eta": 10e6,
-    "phi_CS": 10e6,
-    "cos_theta_CS": 10e6,
-    "diMuon_mass": 10e6,
-    "diMuon_rapidity": 10e6,
-    "diMuon_mass_full_range": 10e8,
-    "diMuon_pt": 10e8,
-    "diMuon_phi": 10e8,
-    "diMuon_eta": 10e8,
-    "n_jet": 10e8,
-    "jet_pt": 10e8,
-    "jet_eta": 10e8,
-    "jet_phi": 10e8,
-    "jet_mass": 10e8,
-    "diJet_pt": 10e8,
-    "diJet_eta": 10e8,
-    "diJet_phi": 10e8,
-    "diJet_mass": 10e8,
-    "diJet_mass_mo": 10e8,
-    "diJet_DeltaEta": 10e8,
-    "pt_balance": 10e8,
-    "pt_centrality": 10e8,
-    "n_SoftJet_pt2": 10e8,
-    "n_SoftJet_pt5": 10e8,
-    "n_SoftJet_pt10": 10e8,
-    "HT": 10e8,
-    "HT_pt2": 10e8,
-    "HT_pt5": 10e8,
-    "HT_pt10": 10e8,
-}
-
 
 def get_color_list(number_of_histograms):
     colors = [
@@ -86,8 +51,14 @@ def get_background_label_list(background_sources):
 
 
 def get_histograms_from_tuple(
-    sources, era, variables, is_background, use_puweight,
-    use_ggH_category, use_VBF_category
+    sources,
+    era,
+    variables,
+    is_background,
+    use_puweight,
+    use_ggH_category,
+    use_VBF_category,
+    ggH_bdt_selections=[],
 ):
     if not use_puweight:
         variables.append("pileup_weight")
@@ -106,26 +77,33 @@ def get_histograms_from_tuple(
             "../root_io/tuples/" + source + "_" + era + "_tuples.root:tree_output"
         ) as file:
             branches = file.arrays(variables, library="np")
+
+            bool_list = np.ones(len(branches[variables[0]]), dtype=bool)
+
             if variables[0] != "diMuon_mass" and is_background:
-                bool_list = (branches["diMuon_mass"] > 130) | (
-                    branches["diMuon_mass"] < 120
+                bool_list = (bool_list) & (
+                    (branches["diMuon_mass"] > 130) | (branches["diMuon_mass"] < 120)
                 )
-                for variable in variables:
-                    branches[variable] = branches[variable][bool_list]
+            if use_ggH_category:
+                bool_list = (bool_list) & (branches["is_ggH_category"] == 1)
+
+            if use_VBF_category:
+                bool_list = (bool_list) & (branches["is_VBF_category"] == 1)
+
+            if len(ggH_bdt_selections) > 1:
+                bdt_ggh_bool = (branches["BDT_ggH"] > ggH_bdt_selections[0]) & (
+                    branches["BDT_ggH"] < ggH_bdt_selections[1]
+                )
+                bool_list = (bool_list) & (bdt_ggh_bool)
+
+            for var in variables:
+                branches[var] = branches[var][bool_list]
 
             clean_null_values(branches, variables, variables_type)
 
-            if use_ggH_category:
-                bool_list = branches["is_ggH_category"] == 1
-                for variable in variables:
-                    branches[variable] = branches[variable][bool_list]
-            elif use_VBF_category:
-                bool_list = branches["is_VBF_category"] == 1
-                for variable in variables:
-                    branches[variable] = branches[variable][bool_list]
-
             if "delta_phi" in variables[0]:
                 branches[variables[0]] = np.absolute(branches[variables[0]])
+
             histogram, bins = np.histogram(
                 branches[variables[0]],
                 bins=n_bins[variable_bin],
@@ -145,6 +123,46 @@ def get_histograms_from_tuple(
     return histograms_list, bins_list
 
 
+def get_data_histograms_from_tuple(
+    era,
+    variables,
+    use_ggH_category,
+    use_VBF_category,
+    ggH_bdt_selections=[],
+):
+    with ur.open(
+        "../root_io/tuples/Data_" + era + "_tuples.root:tree_output"
+    ) as data_file:
+        branches = data_file.arrays(variables, library="np")
+
+        bool_list = (branches["diMuon_mass"] > 130) | (branches["diMuon_mass"] < 120)
+
+        if use_ggH_category:
+            bool_list = (bool_list) & (branches["is_ggH_category"] == 1)
+        if use_VBF_category:
+            bool_list = (bool_list) & (branches["is_VBF_category"] == 1)
+
+        if len(ggH_bdt_selections) > 1:
+            bdt_ggh_bool = (branches["BDT_ggH"] > ggH_bdt_selections[0]) & (
+                branches["BDT_ggH"] < ggH_bdt_selections[1]
+            )
+            bool_list = (bool_list) & (bdt_ggh_bool)
+
+        for var in variables:
+            branches[var] = branches[var][bool_list]
+
+        if "delta_phi" in variables[0]:
+            branches[variables[0]] = np.absolute(branches[variables[0]])
+
+        data_histogram, data_bins = np.histogram(
+            branches[variables[0]],
+            bins=n_bins[variables[0]],
+            range=x_range[variables[0]],
+        )
+
+    return data_histogram, data_bins
+
+
 def draw_data_and_simul_and_ratio(
     variable,
     era,
@@ -153,6 +171,7 @@ def draw_data_and_simul_and_ratio(
     use_puweight=True,
     use_ggH_category=False,
     use_VBF_category=False,
+    ggH_bdt_selections=[],
 ):
     plt.style.use(hep.style.CMS)
 
@@ -167,6 +186,8 @@ def draw_data_and_simul_and_ratio(
         variables.append("is_ggH_category")
     elif use_VBF_category:
         variables.append("is_VBF_category")
+    if len(ggH_bdt_selections) > 1 and variable != "BDT_ggH":
+        variables.append("BDT_ggH")
 
     variable_bin = variable
     if use_ggH_category and (variable + "_ggH" in x_range):
@@ -174,44 +195,31 @@ def draw_data_and_simul_and_ratio(
     if use_VBF_category and (variable + "_VBF" in x_range):
         variable_bin += "_VBF"
 
-    with ur.open(
-        "../root_io/tuples/Data_" + era + "_tuples.root:tree_output"
-    ) as data_file:
-        branches = data_file.arrays(variables, library="np")
-        bool_list = (branches["diMuon_mass"] > 130) | (branches["diMuon_mass"] < 120)
-
-        for var in variables:
-            branches[var] = branches[var][bool_list]
-        # branches[variable] = branches[variable][
-
-        if "delta_phi" in variable:
-            branches[variable] = np.absolute(branches[variable])
-
-        if use_ggH_category:
-            bool_list = branches["is_ggH_category"] == 1
-            for var in variables:
-                branches[var] = branches[var][bool_list]
-        elif use_VBF_category:
-            bool_list = branches["is_VBF_category"] == 1
-            for var in variables:
-                branches[var] = branches[var][bool_list]
-
-        data_histogram, data_bins = np.histogram(
-            branches[variable],
-            bins=n_bins[variable_bin],
-            range=x_range[variable_bin],
-        )
-
+    data_histogram, data_bins = get_data_histograms_from_tuple(
+        era, variables, use_ggH_category, use_VBF_category, ggH_bdt_selections
+    )
     if variable == "diMuon_mass":
         data_histogram[data_histogram == 0] = -100.0
 
     bkg_histograms_list, bkg_bins_list = get_histograms_from_tuple(
-        background_sources, era, variables, True, use_puweight,
-        use_ggH_category, use_VBF_category
+        background_sources,
+        era,
+        variables,
+        True,
+        use_puweight,
+        use_ggH_category,
+        use_VBF_category,
+        ggH_bdt_selections,
     )
     signal_histograms_list, signal_bins_list = get_histograms_from_tuple(
-        signal_sources, era, variables, False, use_puweight,
-        use_ggH_category, use_VBF_category
+        signal_sources,
+        era,
+        variables,
+        False,
+        use_puweight,
+        use_ggH_category,
+        use_VBF_category,
+        ggH_bdt_selections,
     )
 
     fig, axs = get_canvas(True)
@@ -249,9 +257,15 @@ def draw_data_and_simul_and_ratio(
             ax=axs[0],
         )
 
+    label = ""
+    if not use_puweight:
+        label = "No PU weight"
+    if len(ggH_bdt_selections) > 1:
+        label = "Cat" + str(4 - len(ggH_bdt_selections))
+
     hep.cms.label(
         data="True",
-        label="" if use_puweight else "No pu weight",
+        label=label,
         year=era,
         com="13.6",
         lumi=luminosity[era],
@@ -294,15 +308,29 @@ def draw_data_and_simul_and_ratio(
     axs[1].set_xlabel(x_labels[variable])
 
     output_directory = "../plots/ratio/" + era + "/"
+    output_name = variable + "_" + era + "_MCData_ratio"
     if not use_puweight:
         output_directory = "../plots/ratio/" + era + "/no_puWeight/"
     if use_ggH_category:
         output_directory = "../plots/ratio/ggH_category/" + era + "/"
     elif use_VBF_category:
         output_directory = "../plots/ratio/VBF_category/" + era + "/"
+    if len(ggH_bdt_selections) > 1:
+        output_directory = "../plots/ratio/ggH_category/bdt_selections/" + era + "/"
+        output_name += label
 
     output_directory = get_output_directory(variable, output_directory, variables_type)
-
-    save_figure(fig, output_directory, variable + "_" + era + "_MCData_ratio")
-
+    save_figure(fig, output_directory, output_name)
     plt.close()
+
+    if len(ggH_bdt_selections) > 2:
+        draw_data_and_simul_and_ratio(
+            variable,
+            era,
+            background_sources,
+            signal_sources,
+            use_puweight=use_puweight,
+            use_ggH_category=use_ggH_category,
+            use_VBF_category=use_VBF_category,
+            ggH_bdt_selections=ggH_bdt_selections[1:],
+        )

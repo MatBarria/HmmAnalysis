@@ -5,6 +5,9 @@ if len(sys.argv) > 2:
     print("Use one argument: Category. Show only events from that category")
     exit()
 
+if len(sys.argv) == 1:
+    sys.argv.append("")
+
 use_ggH = False if sys.argv[1] != "ggH" else True
 use_VBF = False if sys.argv[1] != "VBF" else True
 
@@ -70,16 +73,34 @@ eras = ["2022", "2022EE", "2023", "2023BPix"]
 
 for era in eras:
     for variable in variables:
-        draw_data_and_simul_and_ratio(variable, era, background_sources,
-                                      signal_sources,
-                                      use_ggH_category=use_ggH,
-                                      use_VBF_category=use_VBF)
+        draw_data_and_simul_and_ratio(
+            variable,
+            era,
+            background_sources,
+            signal_sources,
+            use_ggH_category=use_ggH,
+            use_VBF_category=use_VBF,
+        )
 
-    # draw_data_and_simul_and_ratio("PV", era, background_sources, signal_sources)
-    # draw_data_and_simul_and_ratio("rho", era, background_sources, signal_sources)
-    # draw_data_and_simul_and_ratio(
-    #     "PV", era, background_sources, signal_sources, use_puweight=False
-    # )
-    # draw_data_and_simul_and_ratio(
-    #     "rho", era, background_sources, signal_sources, use_puweight=False
-    # )
+    draw_data_and_simul_and_ratio("PV", era, background_sources, signal_sources)
+    draw_data_and_simul_and_ratio("rho", era, background_sources, signal_sources)
+    draw_data_and_simul_and_ratio(
+        "PV", era, background_sources, signal_sources, use_puweight=False
+    )
+    draw_data_and_simul_and_ratio(
+        "rho", era, background_sources, signal_sources, use_puweight=False
+    )
+
+draw_data_and_simul_and_ratio(
+    "diMuon_mass",
+    "Combined",
+    background_sources,
+    signal_sources,
+    use_puweight=True,
+    use_ggH_category=True,
+    use_VBF_category=False,
+    ggH_bdt_selections=[0.0, 0.06461538461538464, 0.16153846153846155, 1.0],
+)
+draw_data_and_simul_and_ratio(
+    "BDT_ggH", "Combined", background_sources, signal_sources, use_ggH_category=True
+)
