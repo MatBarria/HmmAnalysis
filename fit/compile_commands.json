@@ -1,0 +1,122 @@
+[
+    {
+        "arguments": [
+            "c++",
+            "-c",
+            "-pthread",
+            "-std=c++14",
+            "-m64",
+            "-I/home/matias/software/build/include",
+            "-I/home/matias/RazorFramework/HggRazor/FitMgg/include",
+            "-I/home/matias/RazorFramework/HggRazor/CommonTools/include",
+            "-I/home/matias/RazorFramework/Aux/include",
+            "-g",
+            "-std=c++17",
+            "-o",
+            "/home/matias/RazorFramework/HggRazor/CommonTools/src/HggAux.o",
+            "../CommonTools/src/HggAux.cc"
+        ],
+        "directory": "/home/matias/RazorFramework/HggRazor/FitMgg",
+        "file": "../CommonTools/src/HggAux.cc"
+    },
+    {
+        "arguments": [
+            "c++",
+            "-c",
+            "-pthread",
+            "-std=c++14",
+            "-m64",
+            "-I/home/matias/software/build/include",
+            "-I/home/matias/RazorFramework/HggRazor/FitMgg/include",
+            "-I/home/matias/RazorFramework/HggRazor/CommonTools/include",
+            "-I/home/matias/RazorFramework/Aux/include",
+            "-g",
+            "-std=c++17",
+            "-o",
+            "src/PlotBias.o",
+            "src/PlotBias.cc"
+        ],
+        "directory": "/home/matias/RazorFramework/HggRazor/FitMgg",
+        "file": "src/PlotBias.cc"
+    },
+    {
+        "arguments": [
+            "c++",
+            "-c",
+            "-pthread",
+            "-std=c++14",
+            "-m64",
+            "-I/home/matias/software/build/include",
+            "-I/home/matias/RazorFramework/HggRazor/FitMgg/include",
+            "-I/home/matias/RazorFramework/HggRazor/CommonTools/include",
+            "-I/home/matias/RazorFramework/Aux/include",
+            "-g",
+            "-std=c++17",
+            "-o",
+            "app/PlotAllBiasTest.o",
+            "app/PlotAllBiasTest.cc"
+        ],
+        "directory": "/home/matias/RazorFramework/HggRazor/FitMgg",
+        "file": "app/PlotAllBiasTest.cc"
+    },
+    {
+        "arguments": [
+            "c++",
+            "-c",
+            "-pthread",
+            "-std=c++14",
+            "-m64",
+            "-I/home/matias/software/build/include",
+            "-I/home/matias/RazorFramework/HggRazor/FitMgg/include",
+            "-I/home/matias/RazorFramework/HggRazor/CommonTools/include",
+            "-I/home/matias/RazorFramework/Aux/include",
+            "-g",
+            "-std=c++17",
+            "-o",
+            "/home/matias/RazorFramework/Aux/src/CommandLineInput.o",
+            "../../Aux/src/CommandLineInput.cc"
+        ],
+        "directory": "/home/matias/RazorFramework/HggRazor/FitMgg",
+        "file": "../../Aux/src/CommandLineInput.cc"
+    },
+    {
+        "arguments": [
+            "c++",
+            "-c",
+            "-pthread",
+            "-std=c++14",
+            "-m64",
+            "-I/home/matias/software/build/include",
+            "-I/home/matias/RazorFramework/HggRazor/FitMgg/include",
+            "-I/home/matias/RazorFramework/HggRazor/CommonTools/include",
+            "-I/home/matias/RazorFramework/Aux/include",
+            "-g",
+            "-std=c++17",
+            "-o",
+            "app/testCustomPdf.o",
+            "app/testCustomPdf.cc"
+        ],
+        "directory": "/home/matias/RazorFramework/HggRazor/FitMgg",
+        "file": "app/testCustomPdf.cc"
+    },
+    {
+        "arguments": [
+            "c++",
+            "-c",
+            "-pthread",
+            "-std=c++14",
+            "-m64",
+            "-I/home/matias/software/build/include",
+            "-I/home/matias/RazorFramework/HggRazor/FitMgg/include",
+            "-I/home/matias/RazorFramework/HggRazor/CommonTools/include",
+            "-I/home/matias/RazorFramework/Aux/include",
+            "-g",
+            "-std=c++17",
+            "-o",
+            "app/CreateDataCardCommands.o",
+            "app/CreateDataCardCommands.cc"
+        ],
+        "directory": "/home/matias/RazorFramework/HggRazor/FitMgg",
+        "file": "app/CreateDataCardCommands.cc"
+    }
+]

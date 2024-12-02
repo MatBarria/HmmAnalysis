@@ -1,0 +1,10 @@
+*.root
+data/
+python/
+scripts/
+AIC_output/
+.cache/
+.__*
+*/*/*.o
+*/*.o
+*.o
