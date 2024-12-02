@@ -8,6 +8,7 @@ plt.style.use(hep.style.CMS)  # or ATLAS/LHCb2
 
 if len(sys.argv) < 3:
     print("Arguments missing: Channel_under_study, era, background_subset, signal_subset")
+    print(" Use --only if you want to draw a single era instead of a set")
     exit()
 channel_US = sys.argv[1]
 era_input = sys.argv[2]
@@ -78,5 +79,5 @@ ax.grid()
 file_name = "roc_space_" + channel_US + "_" + era_input
 if len(eras) == 1:
     file_name += "ONLY"
-save_figure(fig, "../plots/" + channel_US + "_category/roc/",
+save_figure(fig, "../plots/BDT_optimization_" + channel_US + "/roc/",
             file_name + "_" + subset_title)
