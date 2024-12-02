@@ -311,8 +311,8 @@ variables_type = {
         "min_delta_eta_diMuon_jet",
         "min_delta_phi_diMuon_jet",
     ],
-    ## BDT_ggh
-    "ggH_category": [
+    ## BDT
+    "BDT_channel": [
         "BDT_ggH",
         "BDT_VBF",
     ],
