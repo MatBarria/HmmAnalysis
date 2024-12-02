@@ -10,6 +10,7 @@ from utils.helper import get_canvas, save_figure, get_histograms_ratio
 
 if len(sys.argv) < 3:
     print("Arguments missing: Channel_under_study, era, background_subset, signal_subset")
+    print(" Use --only if you want to draw a single era instead of a set")
     exit()
 channel_US = sys.argv[1]
 era_input = sys.argv[2]
@@ -153,8 +154,9 @@ def find_bdt_categories(era, bdt_categories, bdf_cut_max=1, iteration=0):
     # ax.legend(frameon=False, loc="upper right")
     ax.set_xlabel("BTD Cut")
 
-    output_directory = "../plots/" + channel_US + "_category/BDT_categories/cuts/"
-    save_name = "BDT_cuts_" + era + "_Cat" + str(iteration) + "_" + subset_title
+    output_directory = "../plots/BDT_optimization_" + channel_US +\
+                       "/BDT_categories/" + subset_title + "/cuts/"
+    save_name = "BDT_cuts_" + era + "_" + subset_title + "_Cat" + str(iteration)
     save_figure(fig, output_directory, save_name)
 
     bdt_categories.append(round(best_cut, 3))
@@ -303,7 +305,8 @@ def draw_bdt_categories(era):
     axs[1].set_xlim(signal_bins[0], signal_bins[-1])
     axs[1].set_xlabel(x_labels[BDTvar])
 
-    output_directory = "../plots/" + channel_US + "_category/BDT_categories/"
+    output_directory = "../plots/BDT_optimization_" + channel_US +\
+                       "/BDT_categories/" + subset_title + "/"
     save_name = "BDT_output_" + era + "_" + subset_title
     save_figure(fig, output_directory, save_name)
 

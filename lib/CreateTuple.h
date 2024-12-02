@@ -113,7 +113,7 @@ class CreateTuple {
 
     /** New Event variables */
     double scale_factor; // luminosity * cross_section / gen_weight_sum
-    double weight;
+    Double_t weight;
     double weight_no_lumi;
     float rho;
     int pv;
@@ -122,6 +122,7 @@ class CreateTuple {
 
     /** New DiMuon variables*/
     float diMuon_rapidity;
+    Double_t diMuon_mass_write;
 
     /** New Muon variables*/
     float mu1_pt_mass_ratio, mu2_pt_mass_ratio, mu1_eta, mu2_eta, phi_CS,
@@ -195,7 +196,7 @@ void CreateTuple::setBranchesAddressesOutput() {
     tree_output->Branch("gen_weight", &gen_weight, "gen_weight/f");
     tree_output->Branch("pileup_weight", &pileup_weight, "pileup_weight/f");
     tree_output->Branch("scale_factor", &scale_factor, "scale_factor/d");
-    tree_output->Branch("weight", &weight, "weight/d");
+    tree_output->Branch("weight", &weight, "weight/D");
     tree_output->Branch("weight_no_lumi", &weight_no_lumi, "weight_no_lumi/d");
     // tree_output->Branch("is_data", &is_data_int, "is_data/i");
     // tree_output->Branch("is_signal", &is_signal_int, "signal/i");
@@ -215,7 +216,7 @@ void CreateTuple::setBranchesAddressesOutput() {
                         "is_VBF_category/i");
 
     // DiMuon variables
-    tree_output->Branch("diMuon_mass", &diMuon_mass, "diMuon_mass/f");
+    tree_output->Branch("diMuon_mass", &diMuon_mass_write, "diMuon_mass/D");
     tree_output->Branch("diMuon_pt", &diMuon_pt, "diMuon_pt/f");
     tree_output->Branch("diMuon_phi", &diMuon_phi, "diMuon_phi/f");
     tree_output->Branch("diMuon_eta", &diMuon_eta, "diMuon_eta/f");
@@ -322,10 +323,11 @@ void CreateTuple::fillOutputTree() {
             continue;
 
         weight = GetEventWeight(gen_weight, pileup_weight, scale_factor);
-        weight_no_lumi = weight /luminosity;
+        weight_no_lumi = weight / luminosity;
 
         // DiMuon variables
         diMuon_rapidity = (mu1_vector + mu2_vector).Rapidity();
+        diMuon_mass_write = static_cast<Double_t>(diMuon_mass);
 
         // Muon variables
         mu1_vector.SetPtEtaPhiM((*mu_pt)[mu1_index], (*mu_eta)[mu1_index],
@@ -375,9 +377,8 @@ void CreateTuple::fillOutputTree() {
             delta_phi_diJet = DeltaPhi(jet_phi->at(0), jet_phi->at(1));
             z_zeppenfeld = GetZZeppenfeldVariable(diMuon_rapidity, jet_pt,
                                                   jet_phi, jet_eta, jet_mass);
-            pt_balance = GetPtBalanceVariable(mu1_vector + mu2_vector,
-                                              jet_pt, jet_phi, jet_eta,
-                                              jet_mass);
+            pt_balance = GetPtBalanceVariable(mu1_vector + mu2_vector, jet_pt,
+                                              jet_phi, jet_eta, jet_mass);
             pt_centrality = GetPtCentralityVariable(diMuon_pt, jet_pt, jet_phi,
                                                     jet_eta, jet_mass);
             min_delta_eta_diMuon_jet =
@@ -434,7 +435,8 @@ int CreateTuple::isVBFCategory() {
 
     if ((n_bjet == 0) && (n_bjet_Loose < 2) && (mu_pt->size() < 3) &&
         (elec_pt->size() == 0) && (n_jet >= 2) && leading_jet_pt > 35 &&
-        (diJet_mass > 400) && (DeltaEta(jet_eta->at(0), jet_eta->at(1)) > 2.5)) {
+        (diJet_mass > 400) &&
+        (DeltaEta(jet_eta->at(0), jet_eta->at(1)) > 2.5)) {
         is_VBF_category = 1;
         return 1;
     } else {

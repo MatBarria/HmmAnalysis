@@ -1,0 +1,20 @@
+# Datacard example for combine tutorial 2023 (part 1)
+---------------------------------------------
+imax 1
+jmax 1
+kmax *
+---------------------------------------------
+
+shapes      ggH          Cat2      fitsCat2.root           w2:mc_dg_doublegauss
+shapes      bkg_mass     Cat2      fitsCat2.root           w1:my_bkg_sExp
+shapes      data_obs     Cat2      fitsCat2.root           w1:data
+
+---------------------------------------------
+bin             Cat2
+observation     -1
+---------------------------------------------
+bin             Cat2        Cat2
+process         ggH         bkg_mass
+process         0           1
+rate            359.15      1.0
+---------------------------------------------

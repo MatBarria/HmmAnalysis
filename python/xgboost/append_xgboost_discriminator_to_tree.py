@@ -17,6 +17,12 @@ import uproot as uproot
 
 root.gROOT.Reset()
 
+use_skim = False
+if ("--skim" in sys.argv):
+    sys.argv.remove("--skim")
+    print(" > Appending BDT to skim file instead of tuple!")
+    use_skim = True
+
 if len(sys.argv) < 4:
     print("Arguments missing: Channel_under_study, era, file_type,\
           background_subset, signal_subset")
@@ -42,22 +48,27 @@ print("Signal subset: ", signal_subset)
 print("Type of file: ", file_type)
 
 subset_title = "B"+ background_subset + "_S" + signal_subset
-
-skim_path = "../../root_io/skim/" + channel_US +"/"
-BDT_path = skim_path + "BDT_score/"
-os.system("mkdir -p " + BDT_path)
-if channel_US == "VBF": skim_path += "merged/"
-
-skim_subset = ""
+tuple_subset = ""
 if file_type == "background" or file_type == "bkg":
-    skim_subset = background_subset
+    tuple_subset = background_subset
 elif file_type == "signal":
-    skim_subset = signal_subset
+    tuple_subset = signal_subset
 
-skim_name = file_type + "_" + era + "_skim" + skim_subset + ".root"
-BDT_name = file_type + "_" + era + "_skim_" + subset_title + ".root"
+if not use_skim:
+    tuple_path = "../../root_io/tuples/"
+    tuple_name = file_type + "_" + era + "_tuples.root"
+    BDT_path = tuple_path + "BDT_score/" + subset_title + "/"
+    BDT_name = file_type + "_" + era + "_tuples.root"
+else:
+    tuple_path = "../../root_io/skim/" + channel_US +"/"
+    tuple_name = file_type + "_" + era + "_skim" + tuple_subset + ".root"
+    BDT_path = tuple_path + "BDT_score/"
+    BDT_name = file_type + "_" + era + "_skim_" + subset_title + ".root"
+    if channel_US == "VBF": tuple_path += "merged/"
+
+os.system("mkdir -p " + BDT_path)
 print("File name: ", BDT_name)
-os.system("cp " + skim_path + skim_name + " " + BDT_path + BDT_name)
+os.system("cp " + tuple_path + tuple_name + " " + BDT_path + BDT_name)
 
 FileName = BDT_path + BDT_name
 File = root.TFile(FileName, "update")

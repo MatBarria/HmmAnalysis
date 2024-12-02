@@ -21,41 +21,16 @@ from .helper import (
 
 signal_colors = {"ggH": "red", "VBF": "blue", "ttH": "lime"}
 
-y_axis_max_range = {
-    "mu1_pt_mass_ratio": 10e6,
-    "mu2_pt_mass_ratio": 10e6,
-    "mu1_eta": 10e6,
-    "mu2_eta": 10e6,
-    "phi_CS": 10e6,
-    "cos_theta_CS": 10e6,
-    "diMuon_mass": 10e6,
-    "diMuon_rapidity": 10e6,
-    "diMuon_mass_full_range": 10e8,
-    "diMuon_pt": 10e8,
-    "diMuon_phi": 10e8,
-    "diMuon_eta": 10e8,
-    "n_jet": 10e8,
-    "jet_pt": 10e8,
-    "jet_eta": 10e8,
-    "jet_phi": 10e8,
-    "jet_mass": 10e8,
-    "diJet_pt": 10e8,
-    "diJet_eta": 10e8,
-    "diJet_phi": 10e8,
-    "diJet_mass": 10e8,
-    "diJet_mass_mo": 10e8,
-    "diJet_DeltaEta": 10e8,
-    "pt_balance": 10e8,
-    "pt_centrality": 10e8,
-    "n_SoftJet_pt2": 10e8,
-    "n_SoftJet_pt5": 10e8,
-    "n_SoftJet_pt10": 10e8,
-    "HT": 10e8,
-    "HT_pt2": 10e8,
-    "HT_pt5": 10e8,
-    "HT_pt10": 10e8,
+BDT_limits = {
+    "ggH": {
+        "BFull_SFull": [0.0, 0.06461538461538464, 0.16153846153846155, 1.0],
+    },
+    "VBF": {
+        "BFull_SNottH": [0.0, 0.38, 0.912, 0.977, 1.0],
+        "BNoDY50_SNottH": [0.0, 0.546, 0.935, 0.985, 1.0],
+    },
+    "": [],
 }
-
 
 def get_color_list(number_of_histograms):
     colors = [
@@ -86,8 +61,14 @@ def get_background_label_list(background_sources):
 
 
 def get_histograms_from_tuple(
-    sources, era, variables, is_background, use_puweight,
-    use_ggH_category, use_VBF_category
+    sources,
+    era,
+    variables,
+    is_background,
+    use_puweight,
+    prod_channel,
+    bdt_categories=[],
+    bdt_subset="",
 ):
     if not use_puweight:
         variables.append("pileup_weight")
@@ -96,36 +77,44 @@ def get_histograms_from_tuple(
     bins_list = []
 
     variable_bin = variables[0]
-    if use_ggH_category and (variable_bin + "_ggH" in x_range):
-        variable_bin += "_ggH"
-    if use_VBF_category and (variable_bin + "_VBF" in x_range):
-        variable_bin += "_VBF"
+    if variable_bin + "_" + prod_channel in x_range:
+        variable_bin += "_" + prod_channel
 
     for source in sources:
+        tuple_path = "../root_io/tuples/"
+        if bdt_subset:
+            tuple_path += "BDT_score/" + bdt_subset + "/"
+
         with ur.open(
-            "../root_io/tuples/" + source + "_" + era + "_tuples.root:tree_output"
+            tuple_path + source + "_" + era + "_tuples.root:tree_output"
         ) as file:
             branches = file.arrays(variables, library="np")
+
+            bool_list = np.ones(len(branches[variables[0]]), dtype=bool)
+
             if variables[0] != "diMuon_mass" and is_background:
-                bool_list = (branches["diMuon_mass"] > 130) | (
-                    branches["diMuon_mass"] < 120
+                bool_list = (bool_list) & (
+                    (branches["diMuon_mass"] > 130) | (branches["diMuon_mass"] < 120)
                 )
-                for variable in variables:
-                    branches[variable] = branches[variable][bool_list]
+
+            if prod_channel:
+                br_name = "is_" + prod_channel + "_category"
+                bool_list = (bool_list) & (branches[br_name] == 1)
+
+            if len(bdt_categories) > 1:
+                BDT_branch = "BDT_" + prod_channel
+                bdt_bool = (branches[BDT_branch] > bdt_categories[0]) &\
+                        (branches[BDT_branch] < bdt_categories[1])
+                bool_list = (bool_list) & (bdt_bool)
+
+            for var in variables:
+                branches[var] = branches[var][bool_list]
 
             clean_null_values(branches, variables, variables_type)
 
-            if use_ggH_category:
-                bool_list = branches["is_ggH_category"] == 1
-                for variable in variables:
-                    branches[variable] = branches[variable][bool_list]
-            elif use_VBF_category:
-                bool_list = branches["is_VBF_category"] == 1
-                for variable in variables:
-                    branches[variable] = branches[variable][bool_list]
-
             if "delta_phi" in variables[0]:
                 branches[variables[0]] = np.absolute(branches[variables[0]])
+
             histogram, bins = np.histogram(
                 branches[variables[0]],
                 bins=n_bins[variable_bin],
@@ -145,73 +134,113 @@ def get_histograms_from_tuple(
     return histograms_list, bins_list
 
 
+def get_data_histograms_from_tuple(
+    era,
+    variables,
+    prod_channel,
+    bdt_categories=[],
+    bdt_subset = "",
+):
+    tuple_path = "../root_io/tuples/"
+    if bdt_subset:
+        tuple_path += "BDT_score/" + bdt_subset + "/"
+
+    variable_bin = variables[0]
+    if variable_bin + "_" + prod_channel in x_range:
+        variable_bin += "_" + prod_channel
+
+    with ur.open(
+        tuple_path + "Data_" + era + "_tuples.root:tree_output"
+    ) as data_file:
+        branches = data_file.arrays(variables, library="np")
+
+        bool_list = (branches["diMuon_mass"] > 130) | (branches["diMuon_mass"] < 120)
+
+        if prod_channel:
+            br_name = "is_" + prod_channel + "_category"
+            bool_list = (bool_list) & (branches[br_name] == 1)
+
+        if len(bdt_categories) > 1:
+            BDT_branch = "BDT_" + prod_channel
+            bdt_bool = (branches[BDT_branch] > bdt_categories[0]) &\
+                       (branches[BDT_branch] < bdt_categories[1])
+            bool_list = (bool_list) & (bdt_bool)
+
+        for var in variables:
+            branches[var] = branches[var][bool_list]
+
+        if "delta_phi" in variables[0]:
+            branches[variables[0]] = np.absolute(branches[variables[0]])
+
+        data_histogram, data_bins = np.histogram(
+            branches[variables[0]],
+            bins=n_bins[variable_bin],
+            range=x_range[variable_bin],
+        )
+
+    return data_histogram, data_bins
+
+
 def draw_data_and_simul_and_ratio(
     variable,
     era,
     background_sources,
     signal_sources,
     use_puweight=True,
-    use_ggH_category=False,
-    use_VBF_category=False,
+    prod_channel="",
+    bdt_subset="",
+    recursive_lvl = 0,
+    bdt_categories=[],
 ):
     plt.style.use(hep.style.CMS)
 
-    print("*" * len("****** PLOTTING " + variable + " *****"))
-    print("****** PLOTTING " + variable + " *****")
-    print("*" * len("****** PLOTTING " + variable + " *****"))
+    if recursive_lvl == 0:
+        print(" > Draw " + variable)
+
+    use_channel_cut = bool(prod_channel)
+    use_bdt = bool(bdt_subset)
+    if use_bdt and not bdt_categories and (variable != "BDT_" + prod_channel):
+        bdt_categories = BDT_limits[prod_channel]
+        if bdt_subset in bdt_categories:
+            bdt_categories = bdt_categories[bdt_subset]
 
     variables = [variable, "weight"]
     if variable != "diMuon_mass":
         variables.append("diMuon_mass")
-    if use_ggH_category:
-        variables.append("is_ggH_category")
-    elif use_VBF_category:
-        variables.append("is_VBF_category")
+    if use_channel_cut:
+        variables.append("is_" + prod_channel + "_category")
+    if len(bdt_categories) > 1 and (variable != "BDT_" + prod_channel):
+        variables.append("BDT_" + prod_channel)
 
     variable_bin = variable
-    if use_ggH_category and (variable + "_ggH" in x_range):
-        variable_bin += "_ggH"
-    if use_VBF_category and (variable + "_VBF" in x_range):
-        variable_bin += "_VBF"
+    if variable + "_" + prod_channel in x_range:
+        variable_bin += "_" + prod_channel
 
-    with ur.open(
-        "../root_io/tuples/Data_" + era + "_tuples.root:tree_output"
-    ) as data_file:
-        branches = data_file.arrays(variables, library="np")
-        bool_list = (branches["diMuon_mass"] > 130) | (branches["diMuon_mass"] < 120)
-
-        for var in variables:
-            branches[var] = branches[var][bool_list]
-        # branches[variable] = branches[variable][
-
-        if "delta_phi" in variable:
-            branches[variable] = np.absolute(branches[variable])
-
-        if use_ggH_category:
-            bool_list = branches["is_ggH_category"] == 1
-            for var in variables:
-                branches[var] = branches[var][bool_list]
-        elif use_VBF_category:
-            bool_list = branches["is_VBF_category"] == 1
-            for var in variables:
-                branches[var] = branches[var][bool_list]
-
-        data_histogram, data_bins = np.histogram(
-            branches[variable],
-            bins=n_bins[variable_bin],
-            range=x_range[variable_bin],
-        )
-
+    data_histogram, data_bins = get_data_histograms_from_tuple(
+        era, variables, prod_channel, bdt_categories, bdt_subset
+    )
     if variable == "diMuon_mass":
         data_histogram[data_histogram == 0] = -100.0
 
     bkg_histograms_list, bkg_bins_list = get_histograms_from_tuple(
-        background_sources, era, variables, True, use_puweight,
-        use_ggH_category, use_VBF_category
+        background_sources,
+        era,
+        variables,
+        True,
+        use_puweight,
+        prod_channel,
+        bdt_categories,
+        bdt_subset,
     )
     signal_histograms_list, signal_bins_list = get_histograms_from_tuple(
-        signal_sources, era, variables, False, use_puweight,
-        use_ggH_category, use_VBF_category
+        signal_sources,
+        era,
+        variables,
+        False,
+        use_puweight,
+        prod_channel,
+        bdt_categories,
+        bdt_subset,
     )
 
     fig, axs = get_canvas(True)
@@ -249,9 +278,15 @@ def draw_data_and_simul_and_ratio(
             ax=axs[0],
         )
 
+    label = ""
+    if not use_puweight:
+        label = "No PU weight"
+    if len(bdt_categories) > 1:
+        label = "Cat" + str(recursive_lvl)
+
     hep.cms.label(
         data="True",
-        label="" if use_puweight else "No pu weight",
+        label=label,
         year=era,
         com="13.6",
         lumi=luminosity[era],
@@ -295,14 +330,35 @@ def draw_data_and_simul_and_ratio(
 
     output_directory = "../plots/ratio/" + era + "/"
     if not use_puweight:
-        output_directory = "../plots/ratio/" + era + "/no_puWeight/"
-    if use_ggH_category:
-        output_directory = "../plots/ratio/ggH_category/" + era + "/"
-    elif use_VBF_category:
-        output_directory = "../plots/ratio/VBF_category/" + era + "/"
+        output_directory += "no_puWeight/"
+    elif use_channel_cut:
+        output_directory += prod_channel + "_production/"
+        if use_bdt:
+            output_directory += bdt_subset + "/"
+        if len(bdt_categories) > 1:
+            output_directory += "BDT_categories/"
 
-    output_directory = get_output_directory(variable, output_directory, variables_type)
+    if not use_bdt:
+        output_directory += "variables_distributions/"
+        output_directory = get_output_directory(variable, output_directory, variables_type)
 
-    save_figure(fig, output_directory, variable + "_" + era + "_MCData_ratio")
+    output_name = variable + "_" + era + "_MCData_ratio"
+    if use_channel_cut and use_bdt and len(bdt_categories) > 1:
+        output_name += "_" + label
 
+    save_figure(fig, output_directory, output_name)
     plt.close()
+
+    if len(bdt_categories) > 2:
+        print("Iteration: ", recursive_lvl+1)
+        draw_data_and_simul_and_ratio(
+            variable,
+            era,
+            background_sources,
+            signal_sources,
+            use_puweight=use_puweight,
+            prod_channel=prod_channel,
+            bdt_subset=bdt_subset,
+            recursive_lvl=recursive_lvl+1,
+            bdt_categories=bdt_categories[1:],
+        )

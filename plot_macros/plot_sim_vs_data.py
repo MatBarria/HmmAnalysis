@@ -1,15 +1,34 @@
 from utils.sim_vs_data import draw_data_and_simul_and_ratio
 import sys
 
-if len(sys.argv) > 2:
-    print("Use one argument: Category. Show only events from that category")
+plot_variables = False
+if ("--distributions" in sys.argv):
+    sys.argv.remove("--distributions")
+    print(" > Ploting variable's distributions too!")
+    plot_variables = True
+
+# Default values
+production_channel = ""
+bsubset = "Full"
+ssubset = "NottH"
+
+if len(sys.argv) == 4:
+    production_channel = sys.argv[1]
+    bsubset = sys.argv[2]
+    ssubset = sys.argv[3]
+elif len(sys.argv) == 2:
+    production_channel = sys.argv[1]
+elif len(sys.argv) == 1:
+    print("Using no production channel selection.")
+    bsubset = ""
+    ssubset = ""
+else:
+    print("Use three arguments: Production_channel, bkg subset, signal subset.")
+    print("Production_channel must be ggH or VBF! Leave empty if no selection wanted.")
+    print("Subset can be skipped (default) or use BOTH, bkg and signal.")
     exit()
 
-use_ggH = False if sys.argv[1] != "ggH" else True
-use_VBF = False if sys.argv[1] != "VBF" else True
-
-if not use_ggH and not use_VBF:
-    print("Using no category selection as default.")
+bdt_subset = "B" + bsubset + "_S" + ssubset if bsubset else ""
 
 # ordered from bottom to top in the plot, so order it from lower to bigger cross section
 background_sources = [
@@ -64,22 +83,48 @@ variables = [
     "HT_pt10",
 ]
 
-eras = ["2022", "2022EE", "2023", "2023BPix"]
+# eras = ["2022", "2022EE", "2023", "2023BPix"]
+eras = ["Combined"]
 # eras = ["2022", "2022EE"]
 # eras = ["2023", "2023BPix"]
 
-for era in eras:
-    for variable in variables:
-        draw_data_and_simul_and_ratio(variable, era, background_sources,
-                                      signal_sources,
-                                      use_ggH_category=use_ggH,
-                                      use_VBF_category=use_VBF)
+if plot_variables:
+    for era in eras:
+        print(" ----------- " + era + " ----------- ")
+        for variable in variables:
+            draw_data_and_simul_and_ratio(
+                variable,
+                era,
+                background_sources,
+                signal_sources,
+                prod_channel=production_channel,
+            )
 
-    # draw_data_and_simul_and_ratio("PV", era, background_sources, signal_sources)
-    # draw_data_and_simul_and_ratio("rho", era, background_sources, signal_sources)
-    # draw_data_and_simul_and_ratio(
-    #     "PV", era, background_sources, signal_sources, use_puweight=False
-    # )
-    # draw_data_and_simul_and_ratio(
-    #     "rho", era, background_sources, signal_sources, use_puweight=False
-    # )
+        # for var in ["PV", "rho"]:
+        #     draw_data_and_simul_and_ratio(var, era, background_sources,
+        #                                   signal_sources)
+        #     draw_data_and_simul_and_ratio(var, era, background_sources,
+        #                                   signal_sources, use_puweight=False)
+
+if bdt_subset:
+    print(" ----------- DiMuon mass per BDT category ----------- ")
+    draw_data_and_simul_and_ratio(
+        "diMuon_mass",
+        "Combined",
+        background_sources,
+        signal_sources,
+        use_puweight=True,
+        prod_channel=production_channel,
+        bdt_subset=bdt_subset,
+    )
+
+    if production_channel:
+        print(" ----------- BDT categories distribution ----------- ")
+        draw_data_and_simul_and_ratio(
+            "BDT_" + production_channel,
+            "Combined",
+            background_sources,
+            signal_sources,
+            prod_channel=production_channel,
+            bdt_subset=bdt_subset,
+        )
