@@ -55,6 +55,7 @@ print("Using CMSSW version " + cmsswReleaseVersion)
 # Create script to send all of the jobs directly
 send_all_jobs = open(CONDOR_BASE_DIR + "/condor_ctuple_job_sender.sh", "w+")
 
+manual_ctuple = ""
 # Create directory for condor jobs
 for dataset_name in list_datasets:
     match_pattern = [True for pattern in skip_pattern if pattern in dataset_name]
@@ -77,20 +78,22 @@ for dataset_name in list_datasets:
     file_name = channel + "_" + era + "_tuples.root"
     file_copy_name = channel + "_" + era + "_tuples_v1.root"
 
-    hadd_exists = os.path.exists("/eos/uscms/" + OUTPUT_DIR + file_name)
-    # print("Exists?", hadd_exists)
-    hadd_copy_exists = os.path.exists("/eos/uscms/" + OUTPUT_DIR + file_copy_name)
-    if hadd_exists:
+    file_exists = os.path.exists("/eos/uscms/" + OUTPUT_DIR + file_name)
+    print("File exists?", file_exists)
+    file_copy_exists = os.path.exists("/eos/uscms/" + OUTPUT_DIR + file_copy_name)
+    print("File copy exists?", file_copy_exists)
+    if file_exists:
         print("Tuples file already exists.")
         if recreate_hadded_file:
-            if hadd_copy_exists:
+            if file_copy_exists:
                 print("A tuple safe copy already exists! Overwriting.")
                 comm = "xrdfs root://cmseos.fnal.gov rm /"
-                comm+= OUTPUT_DIR + file_name
+                comm+= OUTPUT_DIR + file_copy_name
                 os.system(comm)
             print("Creating new tuple safe copy!")
-            comm = "xrdfs root://cmseos.fnal.gov mv /" + OUTPUT_DIR + file_name
-            comm+= " /" + OUTPUT_DIR + file_copy_name
+            comm = "xrdfs root://cmseos.fnal.gov mv " + OUTPUT_DIR + file_name
+            comm+= " " + OUTPUT_DIR + file_copy_name
+            print(comm)
             os.system(comm)
         else:
             print("Skipping.")
@@ -106,8 +109,8 @@ for dataset_name in list_datasets:
             comm += " T" if "Data" in type_info else " F"
             comm += " T" if "signal" in type_info else " F"
             print(" > cd " + JOB_DIR + "; " + comm)
-            send_all_jobs.write("cd " + JOB_DIR + "\n")
-            send_all_jobs.write(comm + "\n")
+            manual_ctuple += "cd " + JOB_DIR + "\n"
+            manual_ctuple += comm + "\n"
             continue
 
     # Create condor directories
@@ -157,3 +160,10 @@ print("\n----- End -----")
 print("Run all generated jobs with:")
 print(" > bash condor_ctuple_job_sender.sh")
 send_all_jobs.close()
+
+if manual_ctuple:
+    manual_ctuple_script = open("condor_manual_ctuple_sender.sh", "w")
+    manual_ctuple_script.write(manual_ctuple)
+    manual_ctuple_script.close()
+    print("Run problematic datasets manually:")
+    print(" > bash condor_manual_ctuple_sender.sh")
